@@ -22,4 +22,5 @@ else:
         print "No config file. Unable to proceed."
         sys.exit(3)
 
-access_log = config.get('Logs', 'AccessLog')
+access_log = config.get('Common', 'AccessLog')
+print access_log
