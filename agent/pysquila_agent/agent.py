@@ -10,14 +10,19 @@ class Agent(object):
     def __init__(self, host = None, log = None):
         self.host = host
         self.log = log
-        self.db = None
 
+    def get_collection(self):
+        """
+        Returns a collection object to insert data
+        """
         try:
-            conn = Connection(host)
-            self.db = conn.pysquila
-        except Exception as e:
-            print e
+            conn = Connection(self.host)
+            db = conn.pysquila
+            logs = db.logs
+        except Exception:
+            print >> sys.stderr, e
             sys.exit(120)
+        return logs
         
     def get_time(self, timestamp):
         return (datetime.utcfromtimestamp(timestamp))
@@ -42,18 +47,12 @@ class Agent(object):
               }
         return doc
 
-    def add_doc(self, doc):
-        """
-        """
-        db = self.db
-        logs = db.logs
-        logs.insert(doc)
-
     def process_log(self):
         """
         Opens the log and does the hard work
         """
+        logs = self.get_collection()
         with open(self.log) as log:
             for line in log:
                 doc = self.process_line(line)
-                self.add_doc(doc)
+                logs.insert(doc)
