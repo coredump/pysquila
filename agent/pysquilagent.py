@@ -3,7 +3,7 @@
 
 import os, sys
 import ConfigParser
-import pysquila_agent
+from pysquila_agent import agent
 
 config = ConfigParser.ConfigParser()
 if len(sys.argv) > 1:
@@ -23,4 +23,7 @@ else:
         sys.exit(3)
 
 access_log = config.get('Common', 'AccessLog')
-print access_log
+mongo_host = config.get('DB', 'host')
+
+a = agent.Agent(host = mongo_host, log=access_log)
+a.process_log()
