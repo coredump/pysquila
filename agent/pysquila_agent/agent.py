@@ -55,4 +55,4 @@ class Agent(object):
         with open(self.log) as log:
             for line in log:
                 doc = self.process_line(line)
-                logs.insert(doc)
+                logs.insert(doc, safe=True)
