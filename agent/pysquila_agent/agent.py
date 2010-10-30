@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import time
 from datetime import datetime
 from pymongo import Connection
 
@@ -27,32 +28,41 @@ class Agent(object):
     def get_time(self, timestamp):
         return (datetime.utcfromtimestamp(timestamp))
 
-    def process_line(self, line):
-        """
-        Splits the log line, converts timestamps to datetime objects and
-        returns a dictionary to be inserted into the DB.
-        """
-        time, duration, client_address, result, size, method, url,\
-                                    ident, hier, content_type = line.split() 
-        doc = {'time': self.get_time(float(time)),
-               'duration' : int(duration),
-               'client_address': client_address,
-               'result': result,
-               'size': int(size),
-               'method': method,
-               'url': url,
-               'ident': ident,
-               'hierarchy': hier,
-               'content_type': content_type,
-              }
-        return doc
-
     def process_log(self):
         """
         Opens the log and does the hard work
         """
+        # if there's already data, try to find the date of the last object
         logs = self.get_collection()
+        over_last_date = False
+
+        if logs.count() > 0:
+            last_time = logs.find_one(limit=1, sort=[('_id', -1)])['tstamp']
+            timestamp_last_time = time.mktime(last_time.timetuple())
+        else:
+            over_last_date = True
+
         with open(self.log) as log:
             for line in log:
-                doc = self.process_line(line)
+                timestamp, duration, client_address, result, size, \
+                     method, url, ident, hier, content_type = line.split()
+
+                if not over_last_date:
+                    if float(timestamp) <= timestamp_last_time:
+                        continue
+                    else:
+                        over_last_date = True
+
+                doc = {'tstamp': self.get_time(float(timestamp)),
+                       'dur' : int(duration),
+                       'c_addr': client_address,
+                       'res': result,
+                       'size': int(size),
+                       'met': method,
+                       'url': url.split('?')[0],
+                       'ident': ident,
+                       'hier': hier,
+                       'c_type': content_type,
+                      }
+
                 logs.insert(doc, safe=True)
