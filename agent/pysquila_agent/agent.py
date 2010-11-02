@@ -8,9 +8,10 @@ from pymongo import Connection
 
 class Agent(object):
 
-    def __init__(self, host = None, log = None):
+    def __init__(self, host = None, dbname = None, log = None):
         self.host = host
         self.log = log
+        self.dbname = dbname
 
     def get_collection(self):
         """
@@ -18,9 +19,9 @@ class Agent(object):
         """
         try:
             conn = Connection(self.host)
-            db = conn.pysquila
+            db = conn[self.dbname]
             logs = db.logs
-        except Exception:
+        except Exception as e:
             print >> sys.stderr, e
             sys.exit(120)
         return logs
@@ -37,7 +38,7 @@ class Agent(object):
         over_last_date = False
 
         if logs.count() > 0:
-            last_time = logs.find_one(limit=1, sort=[('_id', -1)])['tstamp']
+            last_time = logs.find_one(limit=1, sort=[('_id', -1)])['t']
             timestamp_last_time = time.mktime(last_time.timetuple())
         else:
             over_last_date = True
@@ -53,16 +54,16 @@ class Agent(object):
                     else:
                         over_last_date = True
 
-                doc = {'tstamp': self.get_time(float(timestamp)),
-                       'dur' : int(duration),
-                       'c_addr': client_address,
-                       'res': result,
-                       'size': int(size),
-                       'met': method,
-                       'url': url.split('?')[0],
-                       'ident': ident,
-                       'hier': hier,
-                       'c_type': content_type,
+                doc = {'t': self.get_time(float(timestamp)),
+                       'd' : int(duration),
+                       'c': client_address,
+                       'r': result,
+                       's': int(size),
+                       'm': method,
+                       'u': url.split('?')[0],
+                       'i': ident,
+                       'h': hier,
+                       'o': content_type,
                       }
 
                 logs.insert(doc, safe=True)

@@ -24,6 +24,7 @@ else:
 
 access_log = config.get('Common', 'AccessLog')
 mongo_host = config.get('DB', 'host')
+mongo_db = config.get('DB', 'dbname')
 
-a = agent.Agent(host = mongo_host, log=access_log)
+a = agent.Agent(mongo_host, mongo_db, access_log)
 a.process_log()
