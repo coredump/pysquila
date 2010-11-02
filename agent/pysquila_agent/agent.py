@@ -5,23 +5,27 @@ import sys
 import time
 from datetime import datetime
 from pymongo import Connection
+from pysquila_agent import LOG
 
 class Agent(object):
 
-    def __init__(self, host = None, dbname = None, log = None):
+    def __init__(self, host = None, dbname = None, log = None, debug = 0):
         self.host = host
         self.log = log
         self.dbname = dbname
+        self.log = LOG
+        self.debug = int(debug)
 
     def get_collection(self):
         """
         Returns a collection object to insert data
         """
         try:
+            if self.debug: self.log.debug("Connecting to %s", self.host)
             conn = Connection(self.host)
             db = conn[self.dbname]
             logs = db.logs
-        except Exception as e:
+        except Exception, e:
             print >> sys.stderr, e
             sys.exit(120)
         return logs
@@ -43,7 +47,8 @@ class Agent(object):
         else:
             over_last_date = True
 
-        with open(self.log) as log:
+        try:
+            log = open(self.log)
             for line in log:
                 timestamp, duration, client_address, result, size, \
                      method, url, ident, hier, content_type = line.split()
@@ -67,3 +72,7 @@ class Agent(object):
                       }
 
                 logs.insert(doc, safe=True)
+        
+        except Exception, e:
+            print >> sys.stderr, e
+            sys.exit(120)

@@ -23,8 +23,9 @@ else:
         sys.exit(3)
 
 access_log = config.get('Common', 'AccessLog')
+debug = config.get('Common', 'Debug')
 mongo_host = config.get('DB', 'host')
 mongo_db = config.get('DB', 'dbname')
 
-a = agent.Agent(mongo_host, mongo_db, access_log)
+a = agent.Agent(mongo_host, mongo_db, access_log, debug)
 a.process_log()

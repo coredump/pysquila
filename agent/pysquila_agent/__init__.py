@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import logging
+import sys
+
 """
 pySquiLA agent 
 ==============
@@ -22,3 +25,10 @@ If you are doing an initial load of older logs, you will need to change the
 configuration file to point to each log and run the client manually, from
 the older log to the newer, before pointing it to your normal access.log.
 """
+
+LOG = logging.getLogger('pysquila')
+handler = logging.StreamHandler(sys.stderr)
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+LOG.addHandler(handler)
+LOG.setLevel(logging.DEBUG)
