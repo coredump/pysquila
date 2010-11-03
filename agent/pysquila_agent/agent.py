@@ -11,22 +11,30 @@ class Agent(object):
 
     def __init__(self, host = None, dbname = None, log = None, debug = 0):
         self.host = host
-        self.log = log
+        self.logfile = log
         self.dbname = dbname
         self.log = LOG
-        self.debug = int(debug)
+        self.debug_enabled = int(debug)
+        if self.debug_enabled:
+            self.log.setLevel(10) # Debug, as defined by logging.DEBUG
+        else:
+            self.log.setLevel(40) # Error level, as defined in the same place
+
+    def debug(self, *args):
+        if self.debug_enabled:
+            self.log.debug(*args)
 
     def get_collection(self):
         """
         Returns a collection object to insert data
         """
         try:
-            if self.debug: self.log.debug("Connecting to %s", self.host)
+            self.debug("Connecting to %s", self.host)
             conn = Connection(self.host)
             db = conn[self.dbname]
             logs = db.logs
         except Exception, e:
-            print >> sys.stderr, e
+            self.log.error(e)
             sys.exit(120)
         return logs
         
@@ -42,13 +50,16 @@ class Agent(object):
         over_last_date = False
 
         if logs.count() > 0:
+            self.debug("Db not empty, searching last entry")
             last_time = logs.find_one(limit=1, sort=[('_id', -1)])['t']
             timestamp_last_time = time.mktime(last_time.timetuple())
         else:
+            self.debug("Db empty, starting from scratch")
             over_last_date = True
 
         try:
-            log = open(self.log)
+            self.debug("Opening logfile")
+            log = open(self.logfile)
             for line in log:
                 timestamp, duration, client_address, result, size, \
                      method, url, ident, hier, content_type = line.split()
@@ -72,7 +83,9 @@ class Agent(object):
                       }
 
                 logs.insert(doc, safe=True)
-        
+            self.debug("Closing logfile")
+            log.close()
+
         except Exception, e:
-            print >> sys.stderr, e
+            self.log.error(e)
             sys.exit(120)
