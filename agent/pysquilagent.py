@@ -24,8 +24,9 @@ else:
 
 access_log = config.get('Common', 'AccessLog')
 debug = config.get('Common', 'Debug')
+tz_offset = config.get('Common', 'TzOffset')
 mongo_host = config.get('DB', 'host')
 mongo_db = config.get('DB', 'dbname')
 
-a = agent.Agent(mongo_host, mongo_db, access_log, debug)
+a = agent.Agent(mongo_host, mongo_db, access_log, debug, tz_offset)
 a.process_log()

@@ -3,17 +3,19 @@
 
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pymongo import Connection
 from pysquila_agent import LOG
 
 class Agent(object):
 
-    def __init__(self, host = None, dbname = None, log = None, debug = 0):
+    def __init__(self, host = None, dbname = None, log = None, debug = 0, 
+                 tz_offset = 0):
         self.host = host
         self.logfile = log
         self.dbname = dbname
         self.log = LOG
+        self.tz_offset = timedelta(seconds = int(tz_offset) * 3600)
         self.debug_enabled = int(debug)
         if self.debug_enabled:
             self.log.setLevel(10) # Debug, as defined by logging.DEBUG
@@ -50,22 +52,26 @@ class Agent(object):
         over_last_date = False
 
         if logs.count() > 0:
-            self.debug("Db not empty, searching last entry")
             last_time = logs.find_one(limit=1, sort=[('_id', -1)])['t']
-            timestamp_last_time = time.mktime(last_time.timetuple())
+            corrected_last_time = last_time + self.tz_offset
+            timestamp_last_time = time.mktime(corrected_last_time.timetuple())
+            self.debug("Db not empty, last entry %s", corrected_last_time)
         else:
             self.debug("Db empty, starting from scratch")
             over_last_date = True
 
         try:
             self.debug("Opening logfile")
+            added = 0
             log = open(self.logfile)
             for line in log:
                 timestamp, duration, client_address, result, size, \
                      method, url, ident, hier, content_type = line.split()
 
                 if not over_last_date:
-                    if float(timestamp) <= timestamp_last_time:
+                    # resolution max to the same second prevents duplication 
+                    # of last lines on stale logs
+                    if int(float(timestamp)) <= int(timestamp_last_time):
                         continue
                     else:
                         over_last_date = True
@@ -83,7 +89,8 @@ class Agent(object):
                       }
 
                 logs.insert(doc, safe=True)
-            self.debug("Closing logfile")
+                added += 1
+            self.debug("Closing logfile. Added: %s", added)
             log.close()
 
         except Exception, e:
