@@ -35,5 +35,23 @@ class PySquiLAServer:
         raise cherrypy.HTTPRedirect('/static/index.html')
 
     @cherrypy.expose
-    def test(self):
+    def topusers(self, *args, **kw):
         logs = self.get_collection()
+        log(str(kw))
+
+        start = int(kw['iDisplayStart'])
+        end = start + int(kw['iDisplayLength'])
+        sort_col = int(kw['iSortCol_0'])
+        start_date = self.gen_date(float(kw['initial_date']))
+        end_date = self.gen_date(float(kw['final_date']))
+        sort_dir = kw['sSortDir_0']
+        search = kw['sSearch']
+
+        results = logs.find({ 't' : { '$gte' : start_date } })        
+        log(str(results.count()))
+        return "XXX"
+
+    def gen_date(self, timestamp):
+        original_date = datetime.fromtimestamp(timestamp)
+        correct_date = original_date - self.tz_offset
+        return correct_date

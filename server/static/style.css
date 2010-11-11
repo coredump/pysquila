@@ -38,6 +38,11 @@ div#content {
     opacity: 0.7;
 }
 
+#results {
+    width: 740px;
+    margin: 0 auto;
+}
+
 #graphtitle {
     text-align: center;
 }
