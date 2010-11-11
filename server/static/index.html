@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PySquiLA</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link type="text/css" rel="stylesheet" href="jquery-ui-1.8.6.custom.css">
+  <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+  <script type="text/javascript" src="jquery-ui-1.8.6.custom.min.js"></script>
+  <script type="text/javascript" src="datatables/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="datatables/js/FixedHeader.min.js"></script>
+  <script type="text/javascript" src="pysquila.js"></script>
+  <link type="text/css" rel="stylesheet" href="style.css">
+</head>
+<body onload=startup()>
+  <div id="header">
+  PySquiLA - Squid Log Analyzer
+  </div>
+  <div id="options">
+  Get data from dates <input type="text" name="datefrom" id="datefrom"> to 
+  <input type="text" name="dateto" id="dateto"> 
+  <input type="button" value="Get data" id="submitbutton">
+  <div id="reporttypes">
+    <input type="radio" id="topusers" name="radio" value="topusers" checked="checked"><label for="topusers">Top Users</label>
+    <input type="radio" id="topsites" name="radio" value="topsites"><label for="topsites">Top Sites</label>
+    <input type="radio" id="downloads" name="radio" value="downloads"><label for="downloads">Downloads</label>
+  </div>
+  </div>
+  <div id="content">
+    cof oc
+    <h1 id="tabletitle"></h1>
+    <div style="float: right;">
+      <h2 id="graphtitle"></h2>
+      <div id="graphparent">
+        <canvas id="graph" height="500" width="500"></canvas>
+      </div>
+    </div>
+    <div id="results"></div>
+  </div>
+  <!-- div id="footnotes">
+  </div -->
+</body>
+</html>

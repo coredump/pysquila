@@ -23,8 +23,8 @@ else:
         sys.exit(3)
 
 access_log = config.get('Common', 'AccessLog')
-debug = config.get('Common', 'Debug')
-tz_offset = config.get('Common', 'TzOffset')
+debug = config.getint('Common', 'Debug')
+tz_offset = config.getint('Common', 'TzOffset')
 mongo_host = config.get('DB', 'host')
 mongo_db = config.get('DB', 'dbname')
 

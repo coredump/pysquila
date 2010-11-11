@@ -15,8 +15,8 @@ class Agent(object):
         self.logfile = log
         self.dbname = dbname
         self.log = LOG
-        self.tz_offset = timedelta(seconds = int(tz_offset) * 3600)
-        self.debug_enabled = int(debug)
+        self.tz_offset = timedelta(seconds = tz_offset * 3600)
+        self.debug_enabled = debug
         if self.debug_enabled:
             self.log.setLevel(10) # Debug, as defined by logging.DEBUG
         else:
