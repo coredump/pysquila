@@ -47,18 +47,47 @@ class PySquiLAServer:
         end_date = self.gen_date(float(kw['final_date']))
         sort_dir = kw['sSortDir_0']
         search = kw['sSearch']
-
-        results = logs.find( { 't' : { '$gte' : start_date }, 
-                               't' : { '$lte' : end_date } }, 
+        
+        log('Query')
+        results = logs.find({ 't' : { '$gte' : start_date, '$lte' : end_date } }, 
                               {'d' : 1, 'c' : 1, 's' : 1 },
-                              ).limit(10)
-
+                              )
+        log('Apos query')
         total_size = 0
         total_duration = 0
         temp_dic = {}
 
+        for res in results:
+            duration = res['d']
+            client = res['c']
+            size = res['s']
+
+            total_size += size
+            total_duration += duration
+
+            if not temp_dic.has_key(client):
+                temp_dic[client] = {}
+                temp_dic[client]['connections'] = 0
+                temp_dic[client]['duration'] = 0
+                temp_dic[client]['size'] = 0
+            else:
+                temp_dic[client]['duration'] += duration
+                temp_dic[client]['size'] += size
+                temp_dic[client]['connections'] += 1
+
+        result_dic = {'aaData' : [],
+                      'iTotalRecords' : 0,
+                      'iTotalDisplayRecords' : len(temp_dic),
+                     }
+
+        for key in keys(temp_dic):
+            percent_data = (temp_dic[key]['size'] / total_size) * 100
+            percent_time = (temp_dic[key]['duration'] / total_duration) * 100
+            result_dic['aaData'].append([ key, temp_dic['connections'], 
+                                      temp_dic['size'], percent_data,
+                                      temp_dic['duration'], percent_time ])
         
-        out_json = json.dumps(t_res, default=json_util.default)
+        out_json = json.dumps(result_dic)
         
         return out_json
 
