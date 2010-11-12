@@ -43,7 +43,6 @@ function show(reptype) {
     var data_table = $('#resultstable').dataTable({
                             'bJQueryUI'   : true,
                             'bProcessing' : true,
-                            'bServerSide' : true,
                             'sAjaxSource' : '/' + reptype,
                             'fnServerData': function ( sSource, aoData, fnCallback ) {
                                 aoData.push( { 'name': 'initial_date', 'value': initial_date } );

@@ -40,56 +40,56 @@ class PySquiLAServer:
         logs = self.get_collection()
         log(str(kw))
 
-        start = int(kw['iDisplayStart'])
-        end = start + int(kw['iDisplayLength'])
-        sort_col = int(kw['iSortCol_0'])
         start_date = self.gen_date(float(kw['initial_date']))
         end_date = self.gen_date(float(kw['final_date']))
-        sort_dir = kw['sSortDir_0']
-        search = kw['sSearch']
-        
+
         log('Query')
-        results = logs.find({ 't' : { '$gte' : start_date, '$lte' : end_date } }, 
-                              {'d' : 1, 'c' : 1, 's' : 1 },
-                              )
-        log('Apos query')
+        query = { 't' : { '$gte' : start_date, '$lte' : end_date } }
+
+        map_function = """function m() {
+                             emit(this.c, {duration: this.d, 
+                                           size: this.s, 
+                                           conn: 1});
+                          }"""
+
+        reduce_function = """function r(key, val) {
+                                var total_duration = 0;
+                                var total_size = 0;
+                                var total_conn = 0;
+                                for (var i = 0; i < val.length; i++) {
+                                   total_duration += val[i].duration;
+                                   total_size += val[i].size;
+                                   total_conn += 1;
+                                }
+                                return {duration: total_duration, 
+                                        size: total_size, 
+                                        total_conn : total_conn };
+                             }"""
+       
+        result = logs.map_reduce(map_function, 
+                                 reduce_function, 
+                                 query = query)
+
+        aaData = { 'aaData' : [] } 
         total_size = 0
-        total_duration = 0
-        temp_dic = {}
+        total_dura = 0
 
-        for res in results:
-            duration = res['d']
-            client = res['c']
-            size = res['s']
-
-            total_size += size
-            total_duration += duration
-
-            if not temp_dic.has_key(client):
-                temp_dic[client] = {}
-                temp_dic[client]['connections'] = 0
-                temp_dic[client]['duration'] = 0
-                temp_dic[client]['size'] = 0
-            else:
-                temp_dic[client]['duration'] += duration
-                temp_dic[client]['size'] += size
-                temp_dic[client]['connections'] += 1
-
-        result_dic = {'aaData' : [],
-                      'iTotalRecords' : 0,
-                      'iTotalDisplayRecords' : len(temp_dic),
-                     }
-
-        for key in keys(temp_dic):
-            percent_data = (temp_dic[key]['size'] / total_size) * 100
-            percent_time = (temp_dic[key]['duration'] / total_duration) * 100
-            result_dic['aaData'].append([ key, temp_dic['connections'], 
-                                      temp_dic['size'], percent_data,
-                                      temp_dic['duration'], percent_time ])
+        for res in result.find():
+            total_size += res['value']['size']
+            total_dura += res['value']['duration']
         
-        out_json = json.dumps(result_dic)
+        for res in result.find():
+            aaData['aaData'].append([res['_id'], 
+                                    res['value']['total_conn'],
+                                    res['value']['size'],
+                                    (res['value']['size'] / total_size) * 100,
+                                    res['value']['duration'],
+                                    (res['value']['duration'] / total_size) * 100,
+                                   ])
         
-        return out_json
+        res_json = json.dumps(aaData)
+        
+        return res_json
 
     def gen_date(self, timestamp):
         original_date = datetime.fromtimestamp(timestamp)
