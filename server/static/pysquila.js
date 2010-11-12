@@ -41,6 +41,7 @@ function show(reptype) {
 
 
     var data_table = $('#resultstable').dataTable({
+                            'bJQueryUI'   : true,
                             'bProcessing' : true,
                             'bServerSide' : true,
                             'sAjaxSource' : '/' + reptype,
@@ -53,7 +54,7 @@ function show(reptype) {
                             }
     });
 
-    new FixedHeader(data_table);
+    // new FixedHeader(data_table);
     
 }
 
@@ -136,6 +137,6 @@ function update() {
     $('#reporttypes input:checked').each(function() {
         rType = this.id;
     });
-    console.log(rType);
+    show(rType);
     return true; 
 }

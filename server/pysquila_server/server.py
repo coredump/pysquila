@@ -4,9 +4,10 @@
 import sys
 import cherrypy
 import logging
+import json
 from datetime import datetime, timedelta
 from cherrypy import tools, log
-from pymongo import Connection
+from pymongo import Connection, json_util
 
 class PySquiLAServer:
 
@@ -47,11 +48,21 @@ class PySquiLAServer:
         sort_dir = kw['sSortDir_0']
         search = kw['sSearch']
 
-        results = logs.find({ 't' : { '$gte' : start_date } })        
-        log(str(results.count()))
-        return "XXX"
+        results = logs.find( { 't' : { '$gte' : start_date }, 
+                               't' : { '$lte' : end_date } }, 
+                              {'d' : 1, 'c' : 1, 's' : 1 },
+                              ).limit(10)
+
+        total_size = 0
+        total_duration = 0
+        temp_dic = {}
+
+        
+        out_json = json.dumps(t_res, default=json_util.default)
+        
+        return out_json
 
     def gen_date(self, timestamp):
         original_date = datetime.fromtimestamp(timestamp)
-        correct_date = original_date - self.tz_offset
+        correct_date = original_date + self.tz_offset
         return correct_date
